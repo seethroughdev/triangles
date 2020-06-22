@@ -3,14 +3,16 @@ module Main exposing (Model, Msg(..), init, main, update, view)
 -- import Html.Attributes exposing ()
 
 import Browser
-import Browser.Dom
+import Browser.Events exposing (onMouseMove)
+import Color
 import Debug
-import Draggable
 import Html exposing (Html, div, h3, i, text)
 import Html.Attributes exposing (style)
-import Svg exposing (circle, polygon, svg)
-import Svg.Attributes exposing (cx, cy, fill, r)
+import Json.Decode as Decode
 import Svg.Events
+import TypedSvg exposing (circle, polygon, svg)
+import TypedSvg.Attributes exposing (cx, cy, fill, points, r, viewBox)
+import TypedSvg.Types exposing (Paint(..), px)
 
 
 
@@ -19,16 +21,14 @@ import Svg.Events
 
 type alias Model =
     { ballPosition : Position
-    , drag : Draggable.State String
-    , isHovered : Bool
+    , dragState : DragState
     }
 
 
 init : ( Model, Cmd Msg )
 init =
     ( { ballPosition = Position 300 300
-      , drag = Draggable.init
-      , isHovered = False
+      , dragState = Released
       }
     , Cmd.none
     )
@@ -44,69 +44,40 @@ type alias Position =
     }
 
 
+type DragState
+    = Pressed
+    | Released
+
+
 type Msg
-    = OnDragBy Draggable.Delta
-    | DragMsg (Draggable.Msg String)
-    | ToggleIsHovered Bool
-
-
-dragConfig : Draggable.Config String Msg
-dragConfig =
-    Draggable.basicConfig OnDragBy
+    = UpdatePosition Float Float
+    | UpdateDrag DragState
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
-        OnDragBy ( dx, dy ) ->
+        UpdatePosition x y ->
             let
-                { x, y } =
-                    model.ballPosition
+                newX =
+                    x
 
-                isTriangleInside =
-                    Debug.log "inside" (isInside 300 0 600 520 0 520 (Basics.round model.ballPosition.x + 30) (Basics.round model.ballPosition.y + 30))
+                newY =
+                    y
             in
-            if isTriangleInside then
-                ( { model | ballPosition = Position (x + dx) (y + dy) }, Cmd.none )
+            ( { model | ballPosition = Position newX newY }, Cmd.none )
 
-            else
-                ( model, Cmd.none )
+        UpdateDrag dragState ->
+            case dragState of
+                Pressed ->
+                    ( { model | dragState = dragState }, Cmd.none )
 
-        DragMsg dragMsg ->
-            Draggable.update dragConfig dragMsg model
-
-        ToggleIsHovered isHovered ->
-            ( { model | isHovered = isHovered }, Cmd.none )
-
-
-triangleArea : Int -> Int -> Int -> Int -> Int -> Int -> Int
-triangleArea x1 y1 x2 y2 x3 y3 =
-    Basics.abs ((x1 * (y2 - y3) + x2 * (y3 - y1) + x3 * (y1 - y2)) // 2)
+                Released ->
+                    ( { model | dragState = dragState }, Cmd.none )
 
 
 
--- ((x1*(y2-y3) + x2*(y3-y1)+ x3*(y1-y2))/2.0))
-
-
-isInside : Int -> Int -> Int -> Int -> Int -> Int -> Int -> Int -> Bool
-isInside x1 y1 x2 y2 x3 y3 x y =
-    let
-        a =
-            triangleArea x1 y1 x2 y2 x3 y3
-
-        a1 =
-            triangleArea x y x2 y2 x3 y3
-
-        a2 =
-            triangleArea x1 y1 x y x3 y3
-
-        a3 =
-            triangleArea x1 y1 x2 y2 x y
-    in
-    a == a1 + a2 + a3
-
-
-
+-- ( { model | isClicked = isClicked }, Cmd.none )
 ---- VIEW ----
 
 
@@ -115,43 +86,44 @@ viewCoordinates model =
     div []
         [ h3 [] [ text (String.fromFloat model.ballPosition.x) ]
         , h3 [] [ text (String.fromFloat model.ballPosition.y) ]
+        , h3 []
+            [ text
+                (if model.dragState == Pressed then
+                    "It is clicked"
+
+                 else
+                    "It is not clicked"
+                )
+            ]
         ]
 
 
 viewTriangle : Model -> Html Msg
 viewTriangle model =
     let
-        width =
-            "600"
+        w =
+            600
 
-        height =
-            "600"
-
-        x =
-            String.fromFloat model.ballPosition.x ++ "px"
-
-        y =
-            String.fromFloat model.ballPosition.y ++ "px"
-
-        isTriangleInside =
-            Debug.log "inside" (isInside 300 0 600 520 0 520 (Basics.round model.ballPosition.x) (Basics.round model.ballPosition.y))
+        h =
+            520
     in
     svg
-        [ Svg.Attributes.viewBox ("0 0 " ++ width ++ " " ++ height)
+        [ viewBox 0 0 w h
+        , Svg.Events.onMouseUp (UpdateDrag Released)
         ]
         [ polygon
-            [ Svg.Attributes.points "300,0 600,520 0,520"
-            , Svg.Attributes.id "mainTriangle"
-            , Svg.Attributes.fill "#d8d8d8"
-            , Svg.Events.onMouseOut (ToggleIsHovered False)
+            [ points [ ( w / 2, 0 ), ( w, h ), ( 0, h ) ]
+            , TypedSvg.Attributes.id "mainTriangle"
+            , fill (Paint (Color.rgba 0.8 0.8 0.8 1))
+            , Svg.Events.onMouseOut (UpdateDrag Released)
             ]
             []
         , circle
-            [ Draggable.mouseTrigger "my-element" DragMsg
-            , cx x
-            , cy y
-            , r "20"
-            , fill "#333333"
+            [ cx (px model.ballPosition.x)
+            , cy (px model.ballPosition.y)
+            , r (px 20)
+            , fill (Paint (Color.rgba 0 0 0 1))
+            , Svg.Events.onMouseDown (UpdateDrag Pressed)
             ]
             []
         ]
@@ -171,7 +143,15 @@ view model =
 
 subscriptions : Model -> Sub Msg
 subscriptions model =
-    Draggable.subscriptions DragMsg model.drag
+    if model.dragState == Pressed then
+        onMouseMove
+            (Decode.map2 UpdatePosition
+                (Decode.field "pageX" Decode.float)
+                (Decode.field "pageY" Decode.float)
+            )
+
+    else
+        Sub.none
 
 
 
