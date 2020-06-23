@@ -2,19 +2,18 @@ module Main exposing (Model, Msg(..), init, main, update, view)
 
 -- import Html.Attributes exposing ()
 
-import Bitwise exposing (and)
 import Browser
 import Browser.Dom exposing (getElement)
 import Browser.Events exposing (onMouseMove)
 import Color
 import Debug
-import Html exposing (Html, div, h3, i, text)
+import Html exposing (Html, div, h3, text)
 import Html.Attributes exposing (style)
 import Json.Decode as Decode
 import Svg.Events
 import Task
-import TypedSvg exposing (circle, polygon, svg)
-import TypedSvg.Attributes exposing (cx, cy, fill, points, r, viewBox)
+import TypedSvg exposing (circle, line, polygon, svg)
+import TypedSvg.Attributes exposing (cx, cy, fill, points, r, stroke, strokeWidth, viewBox, x1, x2, y1, y2)
 import TypedSvg.Types exposing (Paint(..), px)
 
 
@@ -31,7 +30,7 @@ type alias Model =
 
 init : ( Model, Cmd Msg )
 init =
-    ( { ballPosition = Position 0.5 0.5
+    ( { ballPosition = Position 0.5 0.66
       , dragState = Released
       , triangleEl = Nothing
       }
@@ -186,27 +185,40 @@ viewTriangle : Model -> Html Msg
 viewTriangle model =
     let
         w =
-            100
+            800
 
         h =
             w * (Basics.sqrt 3 / 2)
 
         ballRadius =
-            2
+            10
+
+        circleCx =
+            px (model.ballPosition.x * w)
+
+        circleCy =
+            px (model.ballPosition.y * h)
+
+        lineColor =
+            Paint (Color.rgba 0.5 0.5 0.5 1)
     in
     svg
         [ viewBox 0 0 w h
-        , Html.Attributes.style "border" "1px solid red"
+        , Html.Attributes.style "border" "1px solid rgba(0,0,0,.1)"
         ]
         [ polygon
             [ points [ ( w / 2, 0 ), ( w, h ), ( 0, h ) ]
             , TypedSvg.Attributes.id "mainTriangle"
             , fill (Paint (Color.rgba 0.8 0.8 0.8 1))
+            , stroke lineColor
             ]
             []
+        , line [ x1 (px 0), y1 (px h), x2 circleCx, y2 circleCy, stroke lineColor, strokeWidth (px 1) ] []
+        , line [ x1 (px (w / 2)), y1 (px 0), x2 circleCx, y2 circleCy, stroke lineColor, strokeWidth (px 1) ] []
+        , line [ x1 (px w), y1 (px h), x2 circleCx, y2 circleCy, stroke lineColor, strokeWidth (px 1) ] []
         , circle
-            [ cx (px (model.ballPosition.x * w))
-            , cy (px (model.ballPosition.y * h))
+            [ cx circleCx
+            , cy circleCy
             , r (px ballRadius)
             , fill (Paint (Color.rgba 0 0 0 1))
             , Svg.Events.onMouseDown (UpdateDrag Pressed)
