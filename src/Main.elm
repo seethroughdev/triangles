@@ -65,9 +65,35 @@ getEl =
     Task.attempt GetTriangle (getElement "mainTriangle")
 
 
+
+-- https://math.stackexchange.com/questions/274712/calculate-on-which-side-of-a-straight-line-is-a-given-point-located
+-- we need to see if the existing point is inside or outside.  And it seems the easiest way is to check if the point
+-- is to the right of the left side, and the left of the right side.
+
+
 sideOfLine : ( Float, Float ) -> ( Float, Float ) -> ( Float, Float ) -> Float
 sideOfLine ( x, y ) ( x1, y1 ) ( x2, y2 ) =
     (x - x1) * (y2 - y1) - (y - y1) * (x2 - x1)
+
+
+
+-- check if point is inside a triangle.
+
+
+isInsideTriangle : Float -> Float -> Bool
+isInsideTriangle x y =
+    let
+        isInsideOnLeft =
+            sideOfLine ( x, y ) ( 0, 1 ) ( 0.5, 0 ) < 0
+
+        isInsideOnRight =
+            sideOfLine ( x, y ) ( 1, 1 ) ( 0.5, 0 ) > 0
+    in
+    isInsideOnLeft && isInsideOnRight
+
+
+
+-- UPDATE VIEW
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -75,38 +101,25 @@ update msg model =
     case msg of
         UpdatePosition x y ->
             let
-                newX =
-                    case model.triangleEl of
-                        Just { element } ->
-                            (x - element.x) / element.width
-
-                        Nothing ->
-                            x
-
-                newY =
+                ( newX, newY ) =
                     case model.triangleEl of
                         Just { element } ->
                             let
-                                newValue =
-                                    (y - element.y) / element.height
+                                offsetX =
+                                    (x - element.x) / element.width
+
+                                -- make sure max of y is 1 so we can't go below triangle
+                                offsetY =
+                                    Basics.min ((y - element.y) / element.height) 1
                             in
-                            if newValue < 1 then
-                                newValue
+                            if isInsideTriangle offsetX offsetY then
+                                ( offsetX, offsetY )
 
                             else
-                                1
+                                ( model.ballPosition.x, model.ballPosition.y )
 
                         Nothing ->
-                            y
-
-                isInsideOnLeft =
-                    sideOfLine ( newX, newY ) ( 0, 1 ) ( 0.5, 0 ) < 0
-
-                isInsideOnRight =
-                    sideOfLine ( newX, newY ) ( 1, 1 ) ( 0.5, 0 ) > 0
-
-                isInside =
-                    Debug.log "isInside" (isInsideOnLeft && isInsideOnRight)
+                            ( 0.5, 0.5 )
             in
             ( { model | ballPosition = Position newX newY }, Cmd.none )
 
@@ -116,13 +129,9 @@ update msg model =
                     ( { model | dragState = dragState }, getEl )
 
                 Released ->
-                    Debug.log "Released" ( { model | dragState = dragState }, Cmd.none )
+                    ( { model | dragState = dragState }, Cmd.none )
 
         GetTriangle result ->
-            let
-                a =
-                    Debug.log "result" result
-            in
             case result of
                 Ok el ->
                     ( { model | triangleEl = Just el }, Cmd.none )
@@ -209,7 +218,7 @@ viewTriangle model =
 
 view : Model -> Html Msg
 view model =
-    div [ style "position" "relative", style "margin" "14rem" ]
+    div [ style "position" "relative", style "margin" "1rem" ]
         [ viewTriangle model
         , viewCoordinates model
         ]
