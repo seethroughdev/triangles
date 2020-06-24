@@ -7,14 +7,26 @@ import Browser.Dom exposing (getElement)
 import Browser.Events exposing (onMouseMove)
 import Color
 import Debug
-import Html exposing (Html, div, h3, text)
+import Html exposing (Html, div, h2, h3, text)
 import Html.Attributes exposing (style)
 import Json.Decode as Decode
 import Svg.Events
 import Task
-import TypedSvg exposing (circle, line, polygon, svg)
-import TypedSvg.Attributes exposing (cx, cy, fill, points, r, stroke, strokeWidth, viewBox, x1, x2, y1, y2)
+import TypedSvg exposing (circle, line, polygon, svg, text_)
+import TypedSvg.Attributes exposing (cx, cy, dominantBaseline, fill, points, r, stroke, strokeWidth, textAnchor, viewBox, x, x1, x2, y, y1, y2)
 import TypedSvg.Types exposing (Paint(..), px)
+
+
+value1 =
+    "Sweet"
+
+
+value2 =
+    "Spicy"
+
+
+value3 =
+    "Sour"
 
 
 
@@ -204,7 +216,10 @@ viewTriangle model =
     in
     svg
         [ viewBox 0 0 w h
-        , Html.Attributes.style "border" "1px solid rgba(0,0,0,.1)"
+        , Html.Attributes.style "flex" "1"
+        , Html.Attributes.style "padding" "4rem"
+        , Html.Attributes.style "overflow" "visible"
+        , Html.Attributes.style "user-select" "none"
         ]
         [ polygon
             [ points [ ( w / 2, 0 ), ( w, h ), ( 0, h ) ]
@@ -216,6 +231,9 @@ viewTriangle model =
         , line [ x1 (px 0), y1 (px h), x2 circleCx, y2 circleCy, stroke lineColor, strokeWidth (px 1) ] []
         , line [ x1 (px (w / 2)), y1 (px 0), x2 circleCx, y2 circleCy, stroke lineColor, strokeWidth (px 1) ] []
         , line [ x1 (px w), y1 (px h), x2 circleCx, y2 circleCy, stroke lineColor, strokeWidth (px 1) ] []
+        , text_ [ x (px -50), y (px (h + 20)) ] [ text value1 ]
+        , text_ [ x (px (w / 2)), y (px -20), dominantBaseline TypedSvg.Types.DominantBaselineMiddle, textAnchor TypedSvg.Types.AnchorMiddle ] [ text value2 ]
+        , text_ [ x (px (w + 10)), y (px (h + 20)) ] [ text value3 ]
         , circle
             [ cx circleCx
             , cy circleCy
@@ -228,10 +246,22 @@ viewTriangle model =
         ]
 
 
+viewValues : Model -> Html Msg
+viewValues model =
+    div [ style "flex" "1" ]
+        [ h2 [] [ text "21" ]
+        , h2 [] [ text "21" ]
+        , h2 [] [ text "21" ]
+        ]
+
+
 view : Model -> Html Msg
 view model =
-    div [ style "position" "relative", style "margin" "1rem" ]
-        [ viewTriangle model
+    div []
+        [ div [ style "display" "flex" ]
+            [ viewTriangle model
+            , viewValues model
+            ]
         , viewCoordinates model
         ]
 
