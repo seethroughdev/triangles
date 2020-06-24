@@ -7,7 +7,7 @@ import Browser.Dom exposing (getElement)
 import Browser.Events exposing (onMouseMove)
 import Color
 import Debug
-import Html exposing (Html, div, h2, h3, text)
+import Html exposing (Html, div, h2, h3, small, text)
 import Html.Attributes exposing (style)
 import Json.Decode as Decode
 import Svg.Events
@@ -17,15 +17,15 @@ import TypedSvg.Attributes exposing (cx, cy, dominantBaseline, fill, points, r, 
 import TypedSvg.Types exposing (Paint(..), px)
 
 
-value1 =
+label1 =
     "Sweet"
 
 
-value2 =
+label2 =
     "Spicy"
 
 
-value3 =
+label3 =
     "Sour"
 
 
@@ -231,9 +231,9 @@ viewTriangle model =
         , line [ x1 (px 0), y1 (px h), x2 circleCx, y2 circleCy, stroke lineColor, strokeWidth (px 1) ] []
         , line [ x1 (px (w / 2)), y1 (px 0), x2 circleCx, y2 circleCy, stroke lineColor, strokeWidth (px 1) ] []
         , line [ x1 (px w), y1 (px h), x2 circleCx, y2 circleCy, stroke lineColor, strokeWidth (px 1) ] []
-        , text_ [ x (px -50), y (px (h + 20)) ] [ text value1 ]
-        , text_ [ x (px (w / 2)), y (px -20), dominantBaseline TypedSvg.Types.DominantBaselineMiddle, textAnchor TypedSvg.Types.AnchorMiddle ] [ text value2 ]
-        , text_ [ x (px (w + 10)), y (px (h + 20)) ] [ text value3 ]
+        , text_ [ x (px -50), y (px (h + 20)) ] [ text label1 ]
+        , text_ [ x (px (w / 2)), y (px -20), dominantBaseline TypedSvg.Types.DominantBaselineMiddle, textAnchor TypedSvg.Types.AnchorMiddle ] [ text label2 ]
+        , text_ [ x (px (w + 10)), y (px (h + 20)) ] [ text label3 ]
         , circle
             [ cx circleCx
             , cy circleCy
@@ -246,12 +246,58 @@ viewTriangle model =
         ]
 
 
+getTriangleArea : Float -> Float -> Float
+getTriangleArea base height =
+    0.5 * base * height
+
+
 viewValues : Model -> Html Msg
 viewValues model =
+    let
+        totalTriangleArea =
+            Debug.log "totalTriangleArea" (getTriangleArea 1 1)
+
+        label1Area =
+            Debug.log "label1Area" (getTriangleArea model.ballPosition.x 1)
+
+        label2Area =
+            Debug.log "label2Area" (getTriangleArea (1 - model.ballPosition.x) 1)
+
+        label3Area =
+            Debug.log "label3Area" (getTriangleArea 1 (1 - model.ballPosition.y))
+
+        total =
+            label1Area + label2Area + label3Area
+    in
     div [ style "flex" "1" ]
-        [ h2 [] [ text "21" ]
-        , h2 [] [ text "21" ]
-        , h2 [] [ text "21" ]
+        [ div []
+            [ small []
+                [ text label1 ]
+            , h2
+                []
+                [ text (String.fromFloat label1Area) ]
+            ]
+        , div []
+            [ small []
+                [ text label2 ]
+            , h2
+                []
+                [ text (String.fromFloat label2Area) ]
+            ]
+        , div []
+            [ small []
+                [ text label3 ]
+            , h2
+                []
+                [ text (String.fromFloat label3Area) ]
+            ]
+        , div []
+            [ small []
+                [ text "Total" ]
+            , h2
+                []
+                [ text (String.fromFloat total) ]
+            ]
         ]
 
 
