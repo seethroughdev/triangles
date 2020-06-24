@@ -6,7 +6,6 @@ import Browser
 import Browser.Dom exposing (getElement)
 import Browser.Events exposing (onMouseMove)
 import Color
-import Debug
 import Html exposing (Html, div, h2, h3, small, text)
 import Html.Attributes exposing (style)
 import Json.Decode as Decode
@@ -17,14 +16,17 @@ import TypedSvg.Attributes exposing (cx, cy, dominantBaseline, fill, points, r, 
 import TypedSvg.Types exposing (Paint(..), px)
 
 
+label1 : String
 label1 =
     "Sweet"
 
 
+label2 : String
 label2 =
     "Spicy"
 
 
+label3 : String
 label3 =
     "Sour"
 
@@ -254,17 +256,16 @@ getTriangleArea base height =
 viewValues : Model -> Html Msg
 viewValues model =
     let
-        totalTriangleArea =
-            Debug.log "totalTriangleArea" (getTriangleArea 1 1)
-
+        -- totalTriangleArea =
+        --     getTriangleArea 1 1
         label1Area =
-            Debug.log "label1Area" (getTriangleArea model.ballPosition.x 1)
+            getTriangleArea model.ballPosition.x 1
 
         label2Area =
-            Debug.log "label2Area" (getTriangleArea (1 - model.ballPosition.x) 1)
+            getTriangleArea (1 - model.ballPosition.x) 1
 
         label3Area =
-            Debug.log "label3Area" (getTriangleArea 1 (1 - model.ballPosition.y))
+            getTriangleArea 1 (1 - model.ballPosition.y)
 
         total =
             label1Area + label2Area + label3Area
