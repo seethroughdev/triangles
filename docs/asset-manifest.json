@@ -1,15 +1,15 @@
 {
-  "main.css": "/static/css/main.7f457dfb.chunk.css",
-  "main.js": "/static/js/main.d9d34a8a.chunk.js",
-  "main.js.map": "/static/js/main.d9d34a8a.chunk.js.map",
-  "runtime~main.js": "/static/js/runtime~main.1b922744.js",
-  "runtime~main.js.map": "/static/js/runtime~main.1b922744.js.map",
-  "vendors~main.js": "/static/js/vendors~main.b9063112.chunk.js",
-  "vendors~main.js.map": "/static/js/vendors~main.b9063112.chunk.js.map",
-  "./service-worker.js": "/./service-worker.js",
-  "favicon.ico": "/favicon.ico",
-  "index.html": "/index.html",
-  "logo.svg": "/logo.svg",
-  "manifest.json": "/manifest.json",
-  "precache-manifest.063eb2f8eef254d232da7ecea97c8649.js": "/precache-manifest.063eb2f8eef254d232da7ecea97c8649.js"
+  "main.css": "./static/css/main.7f457dfb.chunk.css",
+  "main.js": "./static/js/main.933ed0f4.chunk.js",
+  "main.js.map": "./static/js/main.933ed0f4.chunk.js.map",
+  "runtime~main.js": "./static/js/runtime~main.d5752d2f.js",
+  "runtime~main.js.map": "./static/js/runtime~main.d5752d2f.js.map",
+  "vendors~main.js": "./static/js/vendors~main.b9063112.chunk.js",
+  "vendors~main.js.map": "./static/js/vendors~main.b9063112.chunk.js.map",
+  "./service-worker.js": "././service-worker.js",
+  "favicon.ico": "./favicon.ico",
+  "index.html": "./index.html",
+  "logo.svg": "./logo.svg",
+  "manifest.json": "./manifest.json",
+  "precache-manifest.21bd2de84d98c189be027f3e047c23e5.js": "./precache-manifest.21bd2de84d98c189be027f3e047c23e5.js"
 }
